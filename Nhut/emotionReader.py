@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
+import numpy as np
 
 current_dir = os.path.abspath(globals().get("__file__","./"))
 root_dir = os.path.abspath(f'{current_dir}/../../../../input/emotion/rafdb_basic.hdf5')
@@ -74,4 +75,29 @@ for x, y in zip(data_race, count_race):
 plt.xlabel('Race Dataset')
 plt.ylabel('Number of Samples')
 plt.title('Distribution of Samples in ' + data_type)
+plt.show()
+
+total = len(data)
+
+collectn_1 = np.random.normal(np.mean(data_age), np.std(count_age), total)
+collectn_2 = np.random.normal(np.mean(data_gender), np.std(count_gender), total)
+collectn_3 = np.random.normal(np.mean(data_emo), np.std(count_emo), total)
+collectn_4 = np.random.normal(np.mean(data_race), np.std(count_race), total)
+
+# Combine these different collections into a list
+data_to_plot = [collectn_1, collectn_2, collectn_3, collectn_4]
+
+# Create a figure instance and specify the size
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Create the violin plot
+ax.violinplot(data_to_plot)
+
+# Add labels and title
+ax.set_xticks([1, 2, 3, 4])
+ax.set_xticklabels(['Age', 'Gender', 'Emotion', 'Race'])
+ax.set_xlabel('Dataset')
+ax.set_ylabel('Values')
+ax.set_title('Violin Plot Example in '+data_type)
+
 plt.show()
