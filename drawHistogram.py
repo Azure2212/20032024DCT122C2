@@ -9,34 +9,60 @@ dataset_dir = root_dir + '/input/dataset-radfdb-basic/rafdb_basic.hdf5'
 # Đọc file HDF5 vào DataFrame
 df = pd.read_hdf(dataset_dir)
 
-# Thống kê và tạo histogram cho cột 'age'
-plt.figure(figsize=(12, 8))
-plt.subplot(2, 2, 1)
-plt.hist(df['age'].replace({0: '0-3', 1: '4-19', 2: '20-39', 3: '40-69', 4:'70+'}), bins=5, color='blue', edgecolor='black')
-plt.title('Age Histogram')
+# Tách dữ liệu thành dữ liệu huấn luyện và dữ liệu kiểm tra dựa trên cột 'type'
+train_df = df[df['type'] == 'train']
+test_df = df[df['type'] == 'test']
+
+
+plt.figure(figsize=(24, 10))
+
+# Histogram cho dữ liệu train
+plt.subplot(2, 4, 1)
+plt.hist(train_df['age'].replace({0: '0-3', 1: '4-19', 2: '20-39', 3: '40-69', 4:'70+'}), bins=5, color='blue', edgecolor='black')
+plt.title('Train - Age Histogram')
 plt.xlabel('Age')
 plt.ylabel('Frequency')
 
-# Thống kê và tạo histogram cho cột 'race'
-plt.subplot(2, 2, 2)
-plt.hist(df['race'].replace({0: 'Caucasian', 1: 'African-American', 2: 'Asian'}), bins=3, color='red', edgecolor='black')
-plt.title('Race Histogram')
+plt.subplot(2, 4, 2)
+plt.hist(train_df['race'].replace({0: 'Caucasian', 1: 'African-American', 2: 'Asian'}), bins=3, color='red', edgecolor='black')
+plt.title('Train - Race Histogram')
 plt.xlabel('Race')
 plt.ylabel('Frequency')
 
-# Thống kê và tạo histogram cho cột 'gender'
-plt.subplot(2, 2, 3)
-# Sử dụng labels thay vì giá trị số
-plt.hist(df['gender'].replace({0: 'male', 1: 'female', 2: 'unsure'}), bins=3, color='green', edgecolor='black')
-plt.title('Gender Histogram')
+plt.subplot(2, 4, 3)
+plt.hist(train_df['gender'].replace({0: 'male', 1: 'female', 2: 'unsure'}), bins=3, color='green', edgecolor='black')
+plt.title('Train - Gender Histogram')
 plt.xlabel('Gender')
 plt.ylabel('Frequency')
 
+plt.subplot(2, 4, 4)
+plt.hist(train_df['emotion'].replace({1: 'Surprise', 2: 'Fear', 3: 'Disgust', 4: 'Happiness', 5: 'Sadness', 6: 'Anger', 7: 'Neutral'}), bins=7, color='orange', edgecolor='black')
+plt.title('Train - Emotion Histogram')
+plt.xlabel('Emotion')
+plt.ylabel('Frequency')
 
-# Thống kê và tạo histogram cho cột 'label' (emotion)
-plt.subplot(2, 2, 4)
-plt.hist(df['emotion'].replace({1: 'Surprise', 2: 'Fear', 3: 'Disgust', 4: 'Happiness', 5: 'Sadness', 6: 'Anger', 7: 'Neutral'}), bins=7, color='orange', edgecolor='black')
-plt.title('Emotion Histogram')
+# Histogram cho dữ liệu test
+plt.subplot(2, 4, 5)
+plt.hist(test_df['age'].replace({0: '0-3', 1: '4-19', 2: '20-39', 3: '40-69', 4:'70+'}), bins=5, color='blue', edgecolor='black')
+plt.title('Test - Age Histogram')
+plt.xlabel('Age')
+plt.ylabel('Frequency')
+
+plt.subplot(2, 4, 6)
+plt.hist(test_df['race'].replace({0: 'Caucasian', 1: 'African-American', 2: 'Asian'}), bins=3, color='red', edgecolor='black')
+plt.title('Test - Race Histogram')
+plt.xlabel('Race')
+plt.ylabel('Frequency')
+
+plt.subplot(2, 4, 7)
+plt.hist(test_df['gender'].replace({0: 'male', 1: 'female', 2: 'unsure'}), bins=3, color='green', edgecolor='black')
+plt.title('Test - Gender Histogram')
+plt.xlabel('Gender')
+plt.ylabel('Frequency')
+
+plt.subplot(2, 4, 8)
+plt.hist(test_df['emotion'].replace({1: 'Surprise', 2: 'Fear', 3: 'Disgust', 4: 'Happiness', 5: 'Sadness', 6: 'Anger', 7: 'Neutral'}), bins=7, color='orange', edgecolor='black')
+plt.title('Test - Emotion Histogram')
 plt.xlabel('Emotion')
 plt.ylabel('Frequency')
 
