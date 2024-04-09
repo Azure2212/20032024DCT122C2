@@ -3,7 +3,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # Read the HDF5 file into a DataFrame
-df = pd.read_hdf("/kaggle/input/dataset-ty/rafdb_basic.hdf5")
+df = pd.read_hdf("/kaggle/working/sgu24project/rafdb_basic.hdf5")
 df = df.loc[:, [ "age", "emotion","gender", "race"]]
 
 # Tính toán phần trăm người trong từng nhóm tuổi và chủng tộc
