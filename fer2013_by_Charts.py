@@ -149,37 +149,34 @@ plt.show()
 
 
 #Scatter plot
-import numpy as np
 import matplotlib.pyplot as plt
 
-# Grouping by 'label' and counting occurrences for train dataset
-train_label_counts = df[df['type'] == 'train']['label'].value_counts()
+# Create a list of emotions
+emotions = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 
-# Grouping by 'label' and counting occurrences for test dataset
-test_label_counts = df[df['type'] == 'test']['label'].value_counts()
+# Create subplots for each emotion
+fig, axs = plt.subplots(3, 3, figsize=(15, 15))
+axs = axs.flatten()
 
-# Mapping numerical labels to emotion names
-emotion_names = [emotion_folders[label-1] for label in train_label_counts.index]
+for i, emotion in enumerate(emotions):
+    # Filter data for the current emotion in train dataset
+    train_emotion_count = df[(df['type'] == 'train') & (df['label'] == i + 1)].shape[0]
 
-# Generate x positions for train and test data points
-train_x = np.arange(len(emotion_names))
-test_x = train_x + 0.3  # Shift test points to the right for better visualization
+    # Filter data for the current emotion in test dataset
+    test_emotion_count = df[(df['type'] == 'test') & (df['label'] == i + 1)].shape[0]
 
-# Plotting the scatter plot
-plt.figure(figsize=(10, 6))
-plt.scatter(train_x, train_label_counts, color='skyblue', label='Train', marker='o')
-plt.scatter(test_x, test_label_counts, color='salmon', label='Test', marker='x')
+    # Plotting the scatter plot
+    axs[i].scatter(train_emotion_count, test_emotion_count, color='skyblue', marker='o')
+    axs[i].set_title(f'Comparison of "{emotion}" Emotion', fontweight='bold')
+    axs[i].set_xlabel('Train Dataset', fontweight='bold')
+    axs[i].set_ylabel('Test Dataset', fontweight='bold')
 
-# Adding labels and title
-plt.xlabel('Emotions', fontweight='bold')
-plt.ylabel('Number of Images', fontweight='bold')
-plt.title('Distribution of Emotions in Train and Test Datasets', fontweight='bold')
+    # Adding text labels for each point
+    axs[i].text(train_emotion_count, test_emotion_count, f'{train_emotion_count}, {test_emotion_count}', fontsize=9, ha='right')
 
-# Adjust x-axis ticks and labels
-plt.xticks(train_x + 0.15, emotion_names, rotation=45, ha='right')
-
-# Adding legend
-plt.legend()
+    # Adding a diagonal line for reference
+    max_count = max(train_emotion_count, test_emotion_count)
+    axs[i].plot([0, max_count], [0, max_count], color='black', linestyle='--')
 
 plt.tight_layout()
 plt.show()
