@@ -13,8 +13,8 @@ if __name__ == "__main__":
     parser = ArgumentParser()
 
     # Arguments users used when running command lines
-    parser.add_argument('--train-folder', default='Data/Train', type=str, help='Where training data is located')
-    parser.add_argument('--valid-folder', default='Data/Validation', type=str, help='Where validation data is located')
+    parser.add_argument('--train-folder', default='/kaggle/input/dog-cat-dataset/cats_and_dogs_filtered/train', type=str, help='Where training data is located')
+    parser.add_argument('--valid-folder', default='/kaggle/input/dog-cat-dataset/cats_and_dogs_filtered/validation', type=str, help='Where validation data is located')
     parser.add_argument('--model', default='resnet50', type=str, help='Type of model')
     parser.add_argument('--num-classes', default=2, type=int, help='Number of classes')
     parser.add_argument("--batch-size", default=32, type=int)
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', default=120, type=int, help = 'Number of epochs')
     parser.add_argument('--image-channels', default=3, type=int, help='Number channel of input image')
     parser.add_argument('--class-mode', default='sparse', type=str, help='Class mode to compile')
-    parser.add_argument('--model-path', default='best_model.h5', type=str, help='Path to save trained model')
+    parser.add_argument('--model-path', default='best_model.h5.keras', type=str, help='Path to save trained model')
     parser.add_argument('--class-names-path', default='class_names.pkl', type=str, help='Path to save class names')
 
 
@@ -57,8 +57,8 @@ if __name__ == "__main__":
         zoom_range=0.2)
     val_datagen = ImageDataGenerator(rescale=1. / 255)
 
-    train_generator = training_datagen.flow_from_directory(TRAINING_DIR, target_size=(224, 244), batch_size= 64, class_mode = class_mode )
-    val_generator = val_datagen.flow_from_directory(TEST_DIR, target_size=(224, 224), batch_size= 64, class_mode = class_mode)
+    train_generator = training_datagen.flow_from_directory(TRAINING_DIR, target_size=(224, 224), batch_size = args.batch_size, class_mode = class_mode )
+    val_generator = val_datagen.flow_from_directory(TEST_DIR, target_size=(224, 224), batch_size = args.batch_size, class_mode = class_mode)
 
     class_names=list(train_generator.class_indices.keys())
     with open(args.class_names_path,'wb') as fp:
@@ -79,7 +79,6 @@ if __name__ == "__main__":
         print('Wrong resnet name, please choose one of these model: resnet18, resnet34, resnet50, resnet101, resnet152')
 
     model.build(input_shape=(None, args.image_size, args.image_size, args.image_channels))
-    model.summary()
 
 
     if (args.optimizer == 'adam'):
