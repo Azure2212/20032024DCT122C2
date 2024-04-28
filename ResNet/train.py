@@ -5,12 +5,24 @@ from tensorflow.keras.losses import SparseCategoricalCrossentropy, BinaryCrossen
 from tensorflow.keras.optimizers import Adam, SGD, RMSprop, Adadelta, Adamax
 from argparse import ArgumentParser
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger
 import pickle
 import os
+import time
+from datetime import datetime
+
+current_time = time.strftime('%Y-%m-%H:%M:%S')
+
+parser = ArgumentParser()
+path_current = os.path.abspath(globals().get("__file__","."))
+script_dir = os.path.dirname(path_current)
+root_path = os.path.abspath(f"{script_dir}/../../..")
+experiments_dir = os.path.abspath(f"{script_dir}/../../exps/Resnet/experiment_{current_time}")
+data_path = root_path + "/input/dog-cat-dataset/cats_and_dogs_filtered" 
+
+
 
 if __name__ == "__main__":
-    parser = ArgumentParser()
 
     # Arguments users used when running command lines
     parser.add_argument('--train-folder', default='/kaggle/input/dog-cat-dataset/cats_and_dogs_filtered/train', type=str, help='Where training data is located')
@@ -26,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('--class-mode', default='sparse', type=str, help='Class mode to compile')
     parser.add_argument('--model-path', default='best_model.h5.keras', type=str, help='Path to save trained model')
     parser.add_argument('--class-names-path', default='class_names.pkl', type=str, help='Path to save class names')
+    parser.add_argument('--exp-dir', default = experiments_dir, type = str, help ='folder contain experiemts')
 
 
     # parser.add_argument('--model-folder', default='.output/', type=str, help='Folder to save trained model')
@@ -106,10 +119,26 @@ if __name__ == "__main__":
                                  verbose=1,
                                  mode='max',
                                  save_best_only=True)
+    # callbacks
+    callbacks = []
+
+    exp_dir = args.exp_dir
+    log_file_path = os.path.join(exp_dir, 'log.csv')
+
+    # Create the experiment directory if it doesn't exist
+    if not os.path.exists(exp_dir):
+        os.makedirs(exp_dir)
+
+    # Create the log file path
+    log_file_path = os.path.join(exp_dir, 'log.csv')
+    # logger
+    cb_log = CSVLogger(log_file_path)
+    callbacks.append(cb_log)
+
     # Traning
     model.fit(
         train_generator,
         epochs=args.epochs,
         verbose=1,
         validation_data=val_generator,
-        callbacks=[best_model])
+        callbacks=callbacks)
