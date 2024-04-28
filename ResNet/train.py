@@ -10,8 +10,11 @@ import pickle
 import os
 import time
 from datetime import datetime
+import wandb 
+from wandb.keras import WandbMetricsLogger
 
-current_time = time.strftime('%Y-%m-%H:%M:%S')
+
+current_time = time.strftime('%Y-%m-%d-%H:%M:%S')
 
 parser = ArgumentParser()
 path_current = os.path.abspath(globals().get("__file__","."))
@@ -39,16 +42,40 @@ if __name__ == "__main__":
     parser.add_argument('--model-path', default='best_model.h5.keras', type=str, help='Path to save trained model')
     parser.add_argument('--class-names-path', default='class_names.pkl', type=str, help='Path to save class names')
     parser.add_argument('--exp-dir', default = experiments_dir, type = str, help ='folder contain experiemts')
+    
+    #use wandb 
+    parser.add_argument('--author-name', default='unknown', type=str, help='name of an author')
+    parser.add_argument('--use-wandb', default=0, type=int, help='Use wandb')
+    parser.add_argument('--wandb-api-key', default = 'eb800440677f55016b097c3b2e0ef8b96f497f8b', type=str, help='wantdb api key')
+    parser.add_argument('--wandb-project-name', default = 'ResNet', type=str, help='name project to store data in wantdb')
 
 
     # parser.add_argument('--model-folder', default='.output/', type=str, help='Folder to save trained model')
     args = parser.parse_args()
+    
+    #use wandb
+    configs = vars(args)
+    if(args.author_name == ""):
+        raise Exception("author name ??????")
+     # Initialize a W&B run
+    if args.use_wandb == 1:
+        if (args.wandb_api_key ==""):
+            raise Exception("if you use Wandb, please entering wandb api key first!")
+        if (args.wandb_project_name ==""):
+            raise Exception("if you use Wandb, please entering wandb name project first!")
+        wandb.login(key=args.wandb_api_key)
+        run = wandb.init(           
+            project = args.wandb_project_name,
+            config = configs
+        )
+
+
 
     # Project Description
 
     print('---------------------Welcome to resnet-------------------')
-    print('Github: hoangduc199891')
-    print('Email: hoangduc199892@gmail.com')
+    print('Github: armyashe')
+    print('Email: armyashe205@gmail.com')
     print('---------------------------------------------------------------------')
     print('Training resnet model with hyper-params:')
     print('===========================')
@@ -121,6 +148,11 @@ if __name__ == "__main__":
                                  save_best_only=True)
     # callbacks
     callbacks = []
+    
+    # wandb
+    if args.use_wandb == 1:
+        cb_wandb = WandbMetricsLogger(log_freq=1)
+        callbacks.append(cb_wandb)
 
     exp_dir = args.exp_dir
     log_file_path = os.path.join(exp_dir, 'log.csv')
@@ -129,8 +161,6 @@ if __name__ == "__main__":
     if not os.path.exists(exp_dir):
         os.makedirs(exp_dir)
 
-    # Create the log file path
-    log_file_path = os.path.join(exp_dir, 'log.csv')
     # logger
     cb_log = CSVLogger(log_file_path)
     callbacks.append(cb_log)
