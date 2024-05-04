@@ -1,0 +1,102 @@
+wandb_version: 1
+
+train_folder:
+  desc: null
+  value: /kaggle/input/dog-cat-dataset/cats_and_dogs_filtered/train
+valid_folder:
+  desc: null
+  value: /kaggle/input/dog-cat-dataset/cats_and_dogs_filtered/validation
+model:
+  desc: null
+  value: resnet50
+num_classes:
+  desc: null
+  value: 2
+batch_size:
+  desc: null
+  value: 32
+image_size:
+  desc: null
+  value: 224
+optimizer:
+  desc: null
+  value: adamax
+lr:
+  desc: null
+  value: 0.001
+epochs:
+  desc: null
+  value: 120
+image_channels:
+  desc: null
+  value: 3
+class_mode:
+  desc: null
+  value: sparse
+model_path:
+  desc: null
+  value: best_model.h5.keras
+class_names_path:
+  desc: null
+  value: class_names.pkl
+author_name:
+  desc: null
+  value: Minnut
+exp_dir:
+  desc: null
+  value: /kaggle/working/exps/Resnet/experiment_2024-04-14:24:35
+use_wandb:
+  desc: null
+  value: 1
+wandb_api_key:
+  desc: null
+  value: dbd473450bf6ed403540dcc8d28b8c601cde646e
+wandb_project_name:
+  desc: null
+  value: AI_learning
+_wandb:
+  desc: null
+  value:
+    python_version: 3.10.13
+    cli_version: 0.16.6
+    framework: keras
+    is_jupyter_run: true
+    is_kaggle_kernel: true
+    start_time: 1714314278.0
+    t:
+      1:
+      - 2
+      - 3
+      - 12
+      - 55
+      - 105
+      2:
+      - 2
+      - 3
+      - 12
+      - 55
+      - 105
+      3:
+      - 7
+      - 16
+      - 23
+      - 38
+      4: 3.10.13
+      5: 0.16.6
+      8:
+      - 1
+      - 2
+      - 5
+      13: linux-x86_64
+    m:
+    - 1: batch/batch_step
+      6:
+      - 3
+    - 1: batch/accuracy
+      5: 1
+      6:
+      - 1
+    - 1: batch/loss
+      5: 1
+      6:
+      - 1

@@ -5,20 +5,31 @@ from tensorflow.keras.losses import SparseCategoricalCrossentropy, BinaryCrossen
 from tensorflow.keras.optimizers import Adam, SGD, RMSprop, Adadelta, Adamax
 from argparse import ArgumentParser
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, EarlyStopping
 import pickle
 import os
+import time
+import wandb 
+from wandb.keras import WandbMetricsLogger
+import numpy as np
+from tensorflow import keras
+import json
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-
+    current_time = time.strftime('%Y-%m-%H:%M:%S')
+    path_current = os.path.abspath(globals().get("__file__","."))
+    script_dir = os.path.dirname(path_current)
+    root_path = os.path.abspath(f"{script_dir}/../../..")
+    experiments_dir = os.path.abspath(f"{script_dir}/../../exps/Resnet/experiment_{current_time}")
+    
     # Arguments users used when running command lines
     parser.add_argument('--train-folder', default='/kaggle/input/dog-cat-dataset/cats_and_dogs_filtered/train', type=str, help='Where training data is located')
     parser.add_argument('--valid-folder', default='/kaggle/input/dog-cat-dataset/cats_and_dogs_filtered/validation', type=str, help='Where validation data is located')
     parser.add_argument('--model', default='resnet50', type=str, help='Type of model')
     parser.add_argument('--num-classes', default=2, type=int, help='Number of classes')
     parser.add_argument("--batch-size", default=32, type=int)
-    parser.add_argument('--image-size', default=224, type=int, help='Size of input image')
+    parser.add_argument('--image-size', default=100, type=int, help='Size of input image')
     parser.add_argument('--optimizer', default='adam', type=str, help='Types of optimizers')
     parser.add_argument('--lr', default=0.001, type=float, help='Learning rate')
     parser.add_argument('--epochs', default=120, type=int, help = 'Number of epochs')
@@ -26,10 +37,31 @@ if __name__ == "__main__":
     parser.add_argument('--class-mode', default='sparse', type=str, help='Class mode to compile')
     parser.add_argument('--model-path', default='best_model.h5.keras', type=str, help='Path to save trained model')
     parser.add_argument('--class-names-path', default='class_names.pkl', type=str, help='Path to save class names')
-
+    #
+    parser.add_argument('--author-name', default='Minnut', type=str, help='name of an author')
+    parser.add_argument('--exp-dir', default = experiments_dir, type = str, help ='folder contain experiemts')
+    parser.add_argument('--use-wandb', default=0, type=int, help='Use wandb')
+    parser.add_argument('--wandb-api-key', default = 'dbd473450bf6ed403540dcc8d28b8c601cde646e', type=str, help='wantdb api key')
+    parser.add_argument('--wandb-project-name', default = 'AI_learning', type=str, help='name project to store data in wantdb')
 
     # parser.add_argument('--model-folder', default='.output/', type=str, help='Folder to save trained model')
     args = parser.parse_args()
+
+    #use wandb
+    configs = vars(args)
+    if(args.author_name == ""):
+        raise Exception("author name ??????")
+     # Initialize a W&B run
+    if args.use_wandb == 1:
+        if (args.wandb_api_key ==""):
+            raise Exception("if you use Wandb, please entering wandb api key first!")
+        if (args.wandb_project_name ==""):
+            raise Exception("if you use Wandb, please entering wandb name project first!")
+        wandb.login(key=args.wandb_api_key)
+        run = wandb.init(
+            project = args.wandb_project_name,
+            config = configs
+        )
 
     # Project Description
 
@@ -43,7 +75,7 @@ if __name__ == "__main__":
     # Invoke folder path
     TRAINING_DIR = args.train_folder
     TEST_DIR = args.valid_folder
-    
+
     loss = SparseCategoricalCrossentropy()
     class_mode = args.class_mode
     classes = args.num_classes
@@ -78,6 +110,16 @@ if __name__ == "__main__":
     else:
         print('Wrong resnet name, please choose one of these model: resnet18, resnet34, resnet50, resnet101, resnet152')
 
+    # save all arguments to json file
+    os.makedirs(args.exp_dir, exist_ok=True)
+
+    args_dict = vars(args)
+
+    # Write dictionary to file
+    file_path = os.path.join(experiments_dir, "arguments.json")
+    with open(file_path, 'w') as file:
+        json.dump(args_dict, file, indent=4)
+
     model.build(input_shape=(None, args.image_size, args.image_size, args.image_channels))
 
 
@@ -94,22 +136,55 @@ if __name__ == "__main__":
     else:
         raise 'Invalid optimizer. Valid option: adam, sgd, rmsprop, adadelta, adamax'
 
+    # callbacks
+    callbacks = []
+
+    # wandb
+    if args.use_wandb == 1:
+        cb_wandb = WandbMetricsLogger(log_freq=1)
+        callbacks.append(cb_wandb)
+
+    exp_dir = args.exp_dir
+    log_file_path = os.path.join(exp_dir, 'log.csv')
+
+    # Create the experiment directory if it doesn't exist
+    if not os.path.exists(exp_dir):
+        os.makedirs(exp_dir)
+
+    # logger
+    cb_log = CSVLogger(log_file_path)
+    callbacks.append(cb_log)
 
 
     model.compile(optimizer=optimizer, 
                 loss=SparseCategoricalCrossentropy(),
                 metrics=['accuracy'])
     
-    best_model = ModelCheckpoint(args.model_path,
-                                 save_weights_only=False,
-                                 monitor='val_accuracy',
-                                 verbose=1,
-                                 mode='max',
-                                 save_best_only=True)
+    best_model_file_path = os.path.join(exp_dir, 'best_model.h5.keras')
+    best_model = ModelCheckpoint(
+        best_model_file_path,
+        save_weights_only=False,
+        monitor='val_accuracy',
+        verbose=1,
+        mode='max',
+        save_best_only=True)
+    callbacks.append(best_model)
+
+    # Earlystopping
+    callbacks.append(keras.callbacks.EarlyStopping(
+        monitor="val_loss",
+        min_delta=0,
+        patience=30,
+        verbose=0,
+        mode="auto",
+        baseline=None,
+        restore_best_weights=False,
+        start_from_epoch=0,))
+
     # Traning
     model.fit(
         train_generator,
         epochs=args.epochs,
         verbose=1,
         validation_data=val_generator,
-        callbacks=[best_model])
+        callbacks=callbacks)

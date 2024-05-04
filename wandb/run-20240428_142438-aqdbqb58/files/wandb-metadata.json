@@ -1,0 +1,67 @@
+{
+    "os": "Linux-5.15.133+-x86_64-with-glibc2.31",
+    "python": "3.10.13",
+    "heartbeatAt": "2024-04-28T14:24:39.389436",
+    "startedAt": "2024-04-28T14:24:38.407310",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "kaggle.ipynb",
+    "codePathLocal": null,
+    "root": "/kaggle/working/sgu24project",
+    "git": {
+        "remote": "git@github.com:Azure2212/20032024DCT122C2.git",
+        "commit": "1a4c2282844984d50933b48acdf94ccac20f850d"
+    },
+    "email": null,
+    "host": "9b5c654e1a1a",
+    "username": "root",
+    "executable": "/opt/conda/bin/python3.10",
+    "cpu_count": 2,
+    "cpu_count_logical": 4,
+    "cpu_freq": {
+        "current": 2000.17,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2000.17,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2000.17,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2000.17,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2000.17,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 8062.387607574463,
+            "used": 5597.803115844727
+        }
+    },
+    "gpu": "Tesla P100-PCIE-16GB",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "Tesla P100-PCIE-16GB",
+            "memory_total": 17179869184
+        }
+    ],
+    "memory": {
+        "total": 31.357559204101562
+    }
+}
