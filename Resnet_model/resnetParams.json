@@ -1,0 +1,51 @@
+{
+    "model":{
+        "options": ["resnet18", "resnet34", "resnet50", "resnet101", "resnet150"],
+        "choose": "resnet50"
+    },
+    "optimizer":{
+        "options": ["adam", "sgd", "rmsprop", "adadelta", "adamax", "adamw"],
+        "choose": "adam"
+    },
+    "batch-size": 64,
+    "image-size": 224,
+    "num-classes": 7,
+    "lr": 0.001,
+    "epochs": 120,
+    "image-chennels": 3,
+    "class-mode": {
+        "options": ["sparse"],
+        "choose": "sparse"
+    },
+    "model-path": "best_model.h5.keras",
+    "author-name": "Tran Anh tuấn",
+    "use-wandb": 1,
+    "transform-type": "None",
+    "debug":{
+        "options":[0, 1],
+        "choose":0
+    },
+    "d-steps":2,
+    "wandb-api-key":"",
+    "wandb-project-name":"",
+    "type-resnet":{
+        "options": [0, 1, 2], 
+        "choose": 1
+    },
+    "early-stopping": 15,
+    "seed": 42,
+    "using-ReduceLROnPlateau":true,
+    "train-folder": "/kaggle/input/rafdb-basic-after-clustering/rafdb_basic_after_clustering/train",
+    "valid-folder": "/kaggle/input/rafdb-basic-after-clustering/rafdb_basic_after_clustering/test",
+    "exp-dir": "",
+    "show-model": 0,
+    "using-compute-class-weight": true,
+    "lr-schedule": {
+        "options":["ReduceLROnPlateau","cosine_annealing"],
+        "choose":"ReduceLROnPlateau"
+    },
+    "pre-trained":{
+        "options":["ResNet50","ResNet50V2","VGG16","InceptionV3","InceptionResNetV2", "vggface2"],
+        "choose":null
+    }
+}
