@@ -280,13 +280,13 @@ def build(input_shape,num_classes,layers,use_bottleneck=False,type_resnet = 0, p
     if preTrained == 'InceptionResNetV2':
       pre_train_model = InceptionResNetV2(weights='imagenet', include_top=False)
     if preTrained == 'InceptionV3':
-      pre_train_model = inception_v3(weights='imagenet', include_top=False)
+      pre_train_model = InceptionV3(weights='imagenet', include_top=False)
     if preTrained == 'ResNet50':
-      pre_train_model = InceptionResNetV2(weights='imagenet', include_top=False)
+      pre_train_model = ResNet50(weights='imagenet', include_top=False)
     if preTrained == 'ResNet50V2':
-      pre_train_model = inception_v3(weights='imagenet', include_top=False)
+      pre_train_model = ResNet50V2(weights='imagenet', include_top=False)
     else:
-      pre_train_model = resnet50(weights='imagenet', include_top=False)
+      pre_train_model = ResNet50(weights='imagenet', include_top=False)
     print(f"input resnet = output of pre-trained:{preTrained}")
     input = pre_train_model.output
   # conv1
