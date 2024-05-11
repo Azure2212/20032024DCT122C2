@@ -39,7 +39,7 @@
     "valid-folder": "/kaggle/input/rafdb-basic-after-clustering/rafdb_basic_after_clustering/test",
     "exp-dir": "",
     "show-model": 0,
-    "using-compute-class-weight": true,
+    "using-compute-class-weight": 1,
     "lr-schedule": {
         "options":["ReduceLROnPlateau","cosine_annealing"],
         "choose":"ReduceLROnPlateau"

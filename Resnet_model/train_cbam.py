@@ -125,7 +125,7 @@ parser.add_argument('--wandb-project-name', default = all_inital_argument['wandb
 parser.add_argument('--d-steps', default= all_inital_argument['d-steps'], type=int, help='step per epochs')
 parser.add_argument('--type-resnet', default= all_inital_argument['type-resnet']['choose'], type=int, help='0: Resnet, 1: CBAM_Resnet, 2: residual_resnet')
 parser.add_argument('--early-stopping', default= all_inital_argument['early-stopping'], type=int, help='early stopping if n e-pochs not better!')
-parser.add_argument('--using-compute-class-weight', default= all_inital_argument['using-compute-class-weight'], type=str, help='using class weight')
+parser.add_argument('--using-compute-class-weight', default= all_inital_argument['using-compute-class-weight'], type=int, help='using class weight')
 parser.add_argument('--lr-schedule', default= all_inital_argument['lr-schedule']['choose'], type=str, help='learing rate schedule strategies')
 parser.add_argument('--pre-trained', default= all_inital_argument['pre-trained']['choose'], type=str, help='pre-trained model load ')
 
@@ -249,7 +249,7 @@ if args.debug == 1:
 
 #Blance value 
 class_weights = None
-if args.using_compute_class_weight:
+if args.using_compute_class_weight == 1:
     class_values = train_generator.classes
     class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(class_values), y=class_values)
     class_weights = dict(enumerate(class_weights))
