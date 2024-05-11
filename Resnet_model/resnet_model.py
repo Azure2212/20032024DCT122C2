@@ -303,7 +303,7 @@ def build(input_shape,num_classes,layers,use_bottleneck=False,type_resnet = 0, p
              strides=2,
              padding='same',
              kernel_initializer='he_normal',
-             name='conv1_conv')(input)
+             name='conv1_conv')(net)
   net=BatchNormalization(name='conv1_bn')(net)
   net=ReLU(name='conv1_relu')(net)
   net=MaxPooling2D(pool_size=3,
