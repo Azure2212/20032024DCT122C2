@@ -342,7 +342,7 @@ def resnet(input_shape=(224,224,3), resnet_chose='resnet50',num_classes=1000, ty
   print(f"Trainning on {resnet_chose} with pre-trained = {preTrained}")
   layers = {'resnet18':[2,2,2,2], 'resnet34':[3,4,6,3], 'resnet50':[3,4,6,3], 'resnet101': [3,4,23,3], 'resnet152': [3,8,36,3]}
   use_bottleneck = {'resnet18':False, 'resnet34':False, 'resnet50':True, 'resnet101': True, 'resnet152': True}
-  return build(input_shape = input_shape,num_classes = num_classes, layers=layers[resnet_chose], use_bottleneck = use_bottleneck[resnet_chose], type_resnet = type_resnet, preTrained=None)
+  return build(input_shape = input_shape,num_classes = num_classes, layers=layers[resnet_chose], use_bottleneck = use_bottleneck[resnet_chose], type_resnet = type_resnet, preTrained=preTrained)
 
 
 ######################################################  exploring data analysis   #####################################################
