@@ -135,17 +135,17 @@ def basic_block(input, filter_num, stride=1,stage_idx=-1, block_idx=-1):
                strides=stride,
                padding='same',
                kernel_initializer='he_normal',
-               name='conv{}_block_tuan{}_1_conv'.format(stage_idx, block_idx))(input)
-  bn1=BatchNormalization(name='conv{}_block_tuan{}_1_bn'.format(stage_idx, block_idx))(conv1)
-  relu1=ReLU(name='conv{}_block_tuan{}_1_relu'.format(stage_idx, block_idx))(bn1)
+               name='conv{}_block{}_1_conv'.format(stage_idx, block_idx))(input)
+  bn1=BatchNormalization(name='conv{}_block{}_1_bn'.format(stage_idx, block_idx))(conv1)
+  relu1=ReLU(name='conv{}_block{}_1_relu'.format(stage_idx, block_idx))(bn1)
   # conv3x3
   conv2=Conv2D(filters=filter_num,
                kernel_size=3,
                strides=1,
                padding='same',
                kernel_initializer='he_normal',
-               name='conv{}_block_tuan{}_2_conv'.format(stage_idx, block_idx))(relu1)
-  bn2=BatchNormalization(name='conv{}_block_tuan{}_2_bn'.format(stage_idx, block_idx))(conv2)
+               name='conv{}_block{}_2_conv'.format(stage_idx, block_idx))(relu1)
+  bn2=BatchNormalization(name='conv{}_block{}_2_bn'.format(stage_idx, block_idx))(conv2)
 
   # if type_resnet != 0:
   #   attentionn = cbam_block(cbam_feature = bn2,type_resnet = type_resnet)
@@ -169,26 +169,26 @@ def bottleneck_block(input, filter_num, stride=1, stage_idx=-1, block_idx=-1):
                strides=stride,
                padding='valid',
                kernel_initializer='he_normal',
-               name='conv{}_block_tuan{}_1_conv'.format(stage_idx, block_idx))(input)
-  bn1=BatchNormalization(name='conv{}_block_tuan{}_1_bn'.format(stage_idx, block_idx))(conv1)
-  relu1=ReLU(name='conv{}_block_tuan{}_1_relu'.format(stage_idx, block_idx))(bn1)
+               name='conv{}_block{}_1_conv'.format(stage_idx, block_idx))(input)
+  bn1=BatchNormalization(name='conv{}_block{}_1_bn'.format(stage_idx, block_idx))(conv1)
+  relu1=ReLU(name='conv{}_block{}_1_relu'.format(stage_idx, block_idx))(bn1)
   # conv3x3
   conv2=Conv2D(filters=filter_num,
                kernel_size=3,
                strides=1,
                padding='same',
                kernel_initializer='he_normal',
-               name='conv{}_block_tuan{}_2_conv'.format(stage_idx, block_idx))(relu1)
-  bn2=BatchNormalization(name='conv{}_block_tuan{}_2_bn'.format(stage_idx, block_idx))(conv2)
-  relu2=ReLU(name='conv{}_block_tuan{}_2_relu'.format(stage_idx, block_idx))(bn2)
+               name='conv{}_block{}_2_conv'.format(stage_idx, block_idx))(relu1)
+  bn2=BatchNormalization(name='conv{}_block{}_2_bn'.format(stage_idx, block_idx))(conv2)
+  relu2=ReLU(name='conv{}_block{}_2_relu'.format(stage_idx, block_idx))(bn2)
   # conv1x1
   conv3=Conv2D(filters=4*filter_num,
                kernel_size=1,
                strides=1,
                padding='valid',
                kernel_initializer='he_normal',
-               name='conv{}_block_tuan{}_3_conv'.format(stage_idx, block_idx))(relu2)
-  bn3=BatchNormalization(name='conv{}_block_tuan{}_3_bn'.format(stage_idx, block_idx))(conv3)
+               name='conv{}_block{}_3_conv'.format(stage_idx, block_idx))(relu2)
+  bn3=BatchNormalization(name='conv{}_block{}_3_bn'.format(stage_idx, block_idx))(conv3)
   
   # if type_resnet != 0:
   #   attentionn = cbam_block(cbam_feature = bn3,type_resnet = type_resnet)
@@ -221,11 +221,12 @@ def resblock(input, filter_num, stride=1, use_bottleneck=False,stage_idx=-1, blo
                     strides=stride,
                     padding='valid',
                     kernel_initializer='he_normal',
-                    name='conv{}_block_tuan{}_projection-shortcut_conv'.format(stage_idx, block_idx))(input)
-    shortcut=BatchNormalization(name='conv{}_block_tuan{}_projection-shortcut_bn'.format(stage_idx, block_idx))(shortcut)
+                    name='conv{}_block{}_projection-shortcut_conv'.format(stage_idx, block_idx))(input)
+    shortcut=BatchNormalization(name='conv{}_block{}_projection-shortcut_bn'.format(stage_idx, block_idx))(shortcut)
 
-  output=Add(name='conv{}_block_tuan{}_add'.format(stage_idx, block_idx))([residual, shortcut])
-  return ReLU(name='conv{}_block_tuan{}_relu'.format(stage_idx, block_idx))(output)
+  output=Add(name='conv{}_block{}_add'.format(stage_idx, block_idx))([residual, shortcut])
+
+  return ReLU(name='conv{}_block{}_relu'.format(stage_idx, block_idx))(output)
 
 
 #3.Stage Define
@@ -267,115 +268,50 @@ def stage_att(input, filter_num, num_block, use_downsample=True, use_bottleneck=
       net = cbam_block(cbam_feature = net,type_resnet = type_resnet)
   return net
 
-class ResizeLayer(Layer):
-  def __init__(self, target_size=(224, 224), **kwargs):
-      super(ResizeLayer, self).__init__(**kwargs)
-      self.target_size = target_size
-
-  def call(self, inputs):
-      return tf.image.resize(inputs, self.target_size)
 # 4.Model Define
 def build(input_shape,num_classes,layers,use_bottleneck=False,type_resnet = 0, preTrained=None):
   '''A complete `stage` of ResNet
   '''
-  # # Load pre-trained ResNet50 model
-  # if preTrained != 'None':
-  #   print(f"khoi dong pre_trained")
-  #   if preTrained == 'ResNet50':
-  #       base_model = ResNet50(weights='imagenet', include_top=False, input_shape=input_shape)
-  #       # Freeze layers in the base model
-  #       for layer in base_model.layers:
-  #           layer.trainable = False
-  #       net = base_model(input)
-  # else:
-  #     # Your custom initial layers
-  #     # conv1
-  #     net = Conv2D(filters=64,
-  #                   kernel_size=7,
-  #                   strides=2,
-  #                   padding='same',
-  #                   kernel_initializer='he_normal',
-  #                   name='conv1_conv')(input)
-  #     net = BatchNormalization(name='conv1_bn')(net)
-  #     net = ReLU(name='conv1_relu')(net)
-  #     net = MaxPooling2D(pool_size=3,
-  #                         strides=2,
-  #                         padding='same',
-  #                         name='conv1_max_pool')(net)
-  #     # conv2_x, conv3_x, conv4_x, conv5_x
-  #     filters = [64, 128, 256, 512]
-  #     for i in range(len(filters)):
-  #         if type_resnet != 0:
-  #             net = cbam_block(cbam_feature=net, type_resnet=type_resnet)
-  #         net = stage(input=net,
-  #                     filter_num=filters[i],
-  #                     num_block=layers[i],
-  #                     use_downsample=i != 0,
-  #                     use_bottleneck=use_bottleneck,
-  #                     stage_idx=i + 2,
-  #                     type_resnet=type_resnet)
-
-  # net = GlobalAveragePooling2D(name='avg_pool')(net)
-  # output = Dense(num_classes, activation='softmax', name='predictions')(net)
-  # model = Model(input, output)
-
-  # Load pre-trained ResNet50 model
-  # Load pre-trained ResNet50 model
-  # conv1
-
   input = Input(input_shape, name='input')
   print(input)
 
   if preTrained != None:
       # Resize input images to match ResNet50 input shape
     print("Pre-trained is setting up !!!")
-    resized_input = ResizeLayer(target_size=(224, 224))(input)
     if preTrained == 'VGG16':
-      pre_train_model = VGG16(input_tensor=resized_input, include_top=False, weights='imagenet')
+      pre_train_model = VGG16(input_shape=input_shape, include_top=False, weights='imagenet')
     if preTrained == 'InceptionResNetV2':
-      pre_train_model = InceptionResNetV2(input_tensor=resized_input, include_top=False, weights='imagenet')
+      pre_train_model = InceptionResNetV2(input_shape=input_shape, include_top=False, weights='imagenet')
     if preTrained == 'InceptionV3':
-      pre_train_model = InceptionV3(input_tensor=resized_input, include_top=False, weights='imagenet')
+      pre_train_model = InceptionV3(input_shape=input_shape, include_top=False, weights='imagenet')
     if preTrained == 'ResNet50':
-      pre_train_model = ResNet50(input_tensor=resized_input, include_top=False, weights='imagenet')
+      pre_train_model = ResNet50(input_shape=input_shape, include_top=False, weights='imagenet')
     if preTrained == 'ResNet50V2':
-      pre_train_model = ResNet50V2(input_tensor=resized_input, include_top=False, weights='imagenet')
+      pre_train_model = ResNet50V2(input_shape=input_shape, include_top=False, weights='imagenet')
     else:
-      pre_train_model = ResNet50(input_tensor=resized_input, include_top=False, weights='imagenet')
+      pre_train_model = ResNet50(input_shape=input_shape, include_top=False, weights='imagenet')
     print(f"input resnet = output of pre-trained:{preTrained}")
     pre_train_model.trainable = False
     net = pre_train_model.output
   else:
     print("No using Pre-Trained!")
     net = input
+    net = Conv2D(filters=64,
+                  kernel_size=7,
+                  strides=2,
+                  padding='same',
+                  kernel_initializer='he_normal',
+                  name='conv1_conv1')(net)
+    net = BatchNormalization(name='conv1_bn1')(net)
+    net = ReLU(name='conv1_relu1')(net)
+    net = MaxPooling2D(pool_size=3,
+                        strides=2,
+                        padding='same',
+                        name='conv1_max_pool1')(net)
 
-
-
- 
-
-
-
-  # base_model = ResNet50(input_tensor=resized_input, include_top=False, weights='imagenet')
-  # base_model.trainable = False
-
-  # net = base_model.output
-
-  net = Conv2D(filters=64,
-                 kernel_size=7,
-                 strides=2,
-                 padding='same',
-                 kernel_initializer='he_normal',
-                 name='conv1_conv1')(net)
-  net = BatchNormalization(name='conv1_bn1')(net)
-  net = ReLU(name='conv1_relu1')(net)
-  net = MaxPooling2D(pool_size=3,
-                      strides=2,
-                      padding='same',
-                      name='conv1_max_pool1')(net)
-
-  # conv2_x, conv3_x, conv4_x, conv5_x
-  filters = [64, 128, 256, 512]
-  for i in range(len(filters)):
+    # conv2_x, conv3_x, conv4_x, conv5_x
+    filters = [64, 128, 256, 512]
+    for i in range(len(filters)):
       if type_resnet != 0:
           net = cbam_block(cbam_feature=net, type_resnet=type_resnet)
       net = stage(input=net,
@@ -385,8 +321,7 @@ def build(input_shape,num_classes,layers,use_bottleneck=False,type_resnet = 0, p
                   use_bottleneck=use_bottleneck,
                   stage_idx=i + 2,
                   type_resnet=type_resnet,
-                 )
-
+                )
   net = GlobalAveragePooling2D(name='avg_pool1')(net)
   output = Dense(num_classes, activation='softmax', name='predictions')(net)
   model = Model(input, output)
@@ -407,11 +342,11 @@ def build(input_shape,num_classes,layers,use_bottleneck=False,type_resnet = 0, p
 # def resnet152(input_shape=(224,224,3),num_classes=1000, type_resnet = 0):
 #   return build(input_shape,num_classes,[3,8,36,3],use_bottleneck=True,type_resnet=type_resnet)
 
-
-def resnet(input_shape=(224,224,3), resnet_chose='resnet50',num_classes=1000, type_resnet = 0, preTrained=None):
+def resnet(input_shape=(224,224,3), resnet_chose='resnet50',num_classes=1000, type_resnet = 0, preTrained='None'):
   print(f"Trainning on {resnet_chose} with pre-trained = {preTrained}")
   layers = {'resnet18':[2,2,2,2], 'resnet34':[3,4,6,3], 'resnet50':[3,4,6,3], 'resnet101': [3,4,23,3], 'resnet152': [3,8,36,3]}
   use_bottleneck = {'resnet18':False, 'resnet34':False, 'resnet50':True, 'resnet101': True, 'resnet152': True}
+  print(f"using1 {resnet_chose}, layers:{layers[resnet_chose]}, use_bottleneck:{use_bottleneck[resnet_chose]}")
   return build(input_shape = input_shape,num_classes = num_classes, layers=layers[resnet_chose], use_bottleneck = use_bottleneck[resnet_chose], type_resnet = type_resnet, preTrained=preTrained)
 
 
@@ -496,8 +431,20 @@ def train_aug(image_size, p=1.0):
         A.VerticalFlip(p=0.5),
         A.RandomBrightnessContrast(p=0.2),
         A.PadIfNeeded(min_height=image_size[0], min_width=image_size[1], p=0.5),
-        A.Rotate(limit=(-90, 90), p=0.8) 
-],p = 0.95)
+        A.Rotate(limit=(-90, 90), p=0.5),
+        A.Blur(blur_limit=3, p=0.5)
+        
+    ], p=0.95)
+
+def custom_generator(generator, augment_func):
+    for batch in generator:
+        images, labels = batch
+        augmented_images = []
+        for image in images:
+            augmented = augment_func(image=image)
+            augmented_image = augmented["image"]
+            augmented_images.append(augmented_image)
+        yield (np.array(augmented_images), labels)
 
 def transform_image(image):
     image = image.numpy()  # Convert to numpy array

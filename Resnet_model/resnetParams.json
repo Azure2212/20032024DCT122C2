@@ -5,7 +5,7 @@
     },
     "optimizer":{
         "options": ["adam", "sgd", "rmsprop", "adadelta", "adamax", "adamw"],
-        "choose": "adam"
+        "choose": "adamw"
     },
     "batch-size": 64,
     "image-size": 224,
@@ -19,7 +19,7 @@
     },
     "model-path": "best_model.h5.keras",
     "author-name": "Tran Anh tuấn",
-    "use-wandb": 1,
+    "use-wandb": 0,
     "transform-type": "None",
     "debug":{
         "options":[0, 1],
@@ -47,5 +47,6 @@
     "pre-trained":{
         "options":["ResNet50","ResNet50V2","VGG16","InceptionV3","InceptionResNetV2", "vggface2"],
         "choose":null
-    }
+    },
+    "use-albumentation": 0
 }

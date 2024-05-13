@@ -20,8 +20,8 @@ from wandb.keras import WandbMetricsLogger
 import csv
 from tensorflow.keras.models import Model
 from tensorflow.keras.utils import plot_model
+import random
 
-import sys
 sys.path.append("/kaggle/working/sgu24project/Resnet_model/")
 import resnet_model
 
@@ -60,6 +60,7 @@ all_inital_argument = data
 def setSeed(seed):
     tf.random.set_seed(seed)
     np.random.seed(seed)
+    random.seed(seed)
 
 class CustomCSVLogger(Callback):
     def __init__(self, filename, separator=','):
@@ -86,17 +87,40 @@ class CustomCSVLogger(Callback):
             row_dict['learning_rate'] = self.model.optimizer.learning_rate.numpy()
             writer.writerow(row_dict)
 
+class CosineAnnealingScheduler(Callback):
+    """Cosine annealing scheduler.
+    """
+
+    def __init__(self, T_max, eta_max, eta_min=0, verbose=0):
+        super(CosineAnnealingScheduler, self).__init__()
+        self.T_max = T_max
+        self.eta_max = eta_max
+        self.eta_min = eta_min
+        self.verbose = verbose
+
+    def on_epoch_begin(self, epoch, logs=None):
+        if not hasattr(self.model.optimizer, 'lr'):
+            raise ValueError('Optimizer must have a "lr" attribute.')
+        lr = self.eta_min + (self.eta_max - self.eta_min) * (1 + math.cos(math.pi * epoch / self.T_max)) / 2
+        K.set_value(self.model.optimizer.lr, lr)
+        if self.verbose > 0:
+            print('\nEpoch %05d: CosineAnnealingScheduler setting learning '
+                  'rate to %s.' % (epoch + 1, lr))
+
+    def on_epoch_end(self, epoch, logs=None):
+        logs = logs or {}
+        logs['lr'] = K.get_value(self.model.optimizer.lr)
+
 def Learning_rate_schedule_options(lr_schedule, lr_max, lr_min, epochs, monitor='val_loss'):
     #learning rate reduce after 5 epchs without loss decrease
-    def schedule():
-        if lr_schedule == 'ReduceLROnPlateau':
-            return ReduceLROnPlateau(monitor=monitor, factor=0.8, patience=5, min_lr=lr_min)
-        if lr_schedule == 'cosine_annealing':
-            return LearningRateScheduler(lambda epoch: cosine_annealing_lr(epoch))
-    def cosine_annealing_lr(epoch):
-        cosine_annealed_lr = lr_min + (lr_max - lr_min) * 0.5 * (1 + np.cos(epoch / epochs * np.pi))
-        return cosine_annealed_lr
-    return schedule()
+    if lr_schedule == 'ReduceLROnPlateau':
+        print("using ReduceLROnPlateau in learning rate stategy!")
+        return ReduceLROnPlateau(monitor=monitor, factor=0.8, patience=5, min_lr=lr_min)
+    if lr_schedule == 'cosine_annealing':
+        print("using ReduceLROnPlateau in learning rate stategy!")
+        return CosineAnnealingScheduler(T_max=epochs, eta_max=lr_max, eta_min=lr_min)
+    print("using no learning rate stategy!")
+    return None
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', default= all_inital_argument['model']['choose'], type=str, help='Type of model')
@@ -128,6 +152,7 @@ parser.add_argument('--early-stopping', default= all_inital_argument['early-stop
 parser.add_argument('--using-compute-class-weight', default= all_inital_argument['using-compute-class-weight'], type=int, help='using class weight')
 parser.add_argument('--lr-schedule', default= all_inital_argument['lr-schedule']['choose'], type=str, help='learing rate schedule strategies')
 parser.add_argument('--pre-trained', default= all_inital_argument['pre-trained']['choose'], type=str, help='pre-trained model load ')
+parser.add_argument('--use-albumentation', default= all_inital_argument['use-albumentation'], type=int, help='using albumentation')
 
 args, unknown = parser.parse_known_args()
 
@@ -150,7 +175,21 @@ val_datagen = ImageDataGenerator(rescale=1. / 255)
 train_generator = training_datagen.flow_from_directory(args.train_folder, target_size=(args.image_size, args.image_size), batch_size= args.batch_size, class_mode = args.class_mode, shuffle = True)
 val_generator = val_datagen.flow_from_directory(args.valid_folder, target_size=(224, 224), batch_size= args.batch_size, class_mode = args.class_mode, shuffle = True)
 
+if args.use_albumentation == 1:
+	training_datagen = resnet_model.custom_generator(train_generator, train_aug((224, 224)))
+	val_datagen = resnet_model.custom_generator(val_generator, train_aug((224, 224)))
 
+ # Initialize a W&B run
+if args.use_wandb == 1:
+        if (args.wandb_api_key ==""):
+            raise Exception("if you use Wandb, please entering wandb api key first!")
+        if (args.wandb_project_name ==""):
+            raise Exception("if you use Wandb, please entering wandb name project first!")
+        wandb.login(key=args.wandb_api_key)
+        run = wandb.init(
+            project = args.wandb_project_name,
+            config = configs
+        )
 # Create model
 # if args.model == 'resnet18':
 #     model = resnet_model.resnet18(num_classes = args.num_classes, type_resnet = args.type_resnet)
@@ -240,7 +279,8 @@ callbacks.append(keras.callbacks.EarlyStopping(monitor='val_loss',patience=args.
 #learing rate schedule
 if args.lr_schedule != None:
     lr_scheduler = Learning_rate_schedule_options(lr_schedule=args.lr_schedule, monitor='val_loss',  lr_max = args.lr, lr_min=0.00001, epochs = args.epochs)
-    callbacks.append(lr_scheduler)
+    if(lr_scheduler != None):
+        callbacks.append(lr_scheduler)
 
 steps_per_epoch = None
 epochs = args.epochs
@@ -250,9 +290,12 @@ if args.debug == 1:
 #Blance value 
 class_weights = None
 if args.using_compute_class_weight == 1:
-    class_values = train_generator.classes
-    class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(class_values), y=class_values)
-    class_weights = dict(enumerate(class_weights))
+    print("using using_compute_class_weight!")
+    # class_values = train_generator.classes
+    # class_weights = compute_class_weight(class_weight="balanced", classes=np.unique(class_values), y=class_values)
+    # class_weights = dict(enumerate(class_weights))
+    class_weights = {0: 2.4865248226950354, 1: 2.4449093444909344, 2: 6.238434163701068, 3: 0.3673512154233026,
+                     4: 0.6945324881141046, 5: 0.884460141271443, 6: 1.3589147286821706}
 model.fit(
     train_generator,
     epochs=epochs,
